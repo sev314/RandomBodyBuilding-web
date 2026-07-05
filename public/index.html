@@ -381,7 +381,7 @@
 		<script>
 			(function () {
 				// ---------- 기본 데이터 (하드코딩 없이 상수로 분리) ----------
-				const DEFAULT_EXERCISES = [
+				var DEFAULT_EXERCISES = [
 					"플랫 바벨 벤치 프레스",
 					"인클라인 바벨 벤치프레스",
 					"플랫 덤벨 벤치 프레스",
@@ -435,7 +435,7 @@
 					"덤벨 런지",
 				];
 
-				const DEFAULT_SETS = [
+				var DEFAULT_SETS = [
 					"하체 트라이세트",
 					"삼두 트라이세트",
 					"이두 트라이세트",
@@ -455,7 +455,7 @@
 					"이두·삼두 슈퍼세트",
 				];
 
-				const DEFAULT_POSES = [
+				var DEFAULT_POSES = [
 					"보디빌딩 규정포즈 7개",
 					"클래식 보디빌딩 규정포즈 7개",
 					"남자 피지크 쿼터턴",
@@ -466,350 +466,400 @@
 				];
 
 				// ---------- 유틸리티 함수 ----------
-				const shuffleArray = (arr) => {
-					for (let i = arr.length - 1; i > 0; i--) {
-						const j = Math.floor(Math.random() * (i + 1));
-						[arr[i], arr[j]] = [arr[j], arr[i]];
+				var shuffleArray = function (arr) {
+					for (var i = arr.length - 1; i > 0; i--) {
+						var j = Math.floor(Math.random() * (i + 1));
+						var temp = arr[i];
+						arr[i] = arr[j];
+						arr[j] = temp;
 					}
 					return arr;
 				};
 
-				// ---------- 풀(Pool) 관리 클래스 ----------
-				class ExercisePool {
-					constructor(items = []) {
-						this.items = [...items];
-						this.picked = new Set();
-					}
-
-					resetPicked() {
-						this.picked.clear();
-						console.log("운동 종목 선택 기록 초기화");
-					}
-
-					setItems(newItems) {
-						this.items = [...newItems];
-						this.picked.clear(); // 풀이 바뀌면 선택 기록도 초기화
-						console.log("운동 풀 업데이트, 개수:", this.items.length);
-					}
-
-					getRemainingCount() {
-						return this.items.length - this.picked.size;
-					}
-
-					getAvailableItems() {
-						return this.items.filter((item) => !this.picked.has(item));
-					}
-
-					drawOne() {
-						const available = this.getAvailableItems();
-						if (available.length === 0) return null;
-						const randomIndex = Math.floor(Math.random() * available.length);
-						const chosen = available[randomIndex];
-						this.picked.add(chosen);
-						console.log("운동 1개 뽑음:", chosen);
-						return chosen;
-					}
-
-					drawMultiple(count) {
-						const available = this.getAvailableItems();
-						if (available.length === 0) return [];
-						const shuffled = shuffleArray([...available]);
-						const toPick = Math.min(count, shuffled.length);
-						const chosen = shuffled.slice(0, toPick);
-						chosen.forEach((item) => this.picked.add(item));
-						console.log(`운동 ${toPick}개 뽑음:`, chosen);
-						return chosen;
-					}
-				}
-
-				class SetPool {
-					constructor(items = []) {
-						this.items = [...items];
-					}
-
-					setItems(newItems) {
-						this.items = [...newItems];
-						console.log("세트 풀 업데이트:", this.items.length);
-					}
-
-					drawRandom() {
-						if (this.items.length === 0) return null;
-						const idx = Math.floor(Math.random() * this.items.length);
-						return this.items[idx];
-					}
-				}
-
-				class PosePool {
-					constructor(items = []) {
-						this.items = [...items];
-					}
-
-					setItems(newItems) {
-						this.items = [...newItems];
-						console.log("포즈 풀 업데이트:", this.items.length);
-					}
-
-					drawRandom() {
-						if (this.items.length === 0) return null;
-						const idx = Math.floor(Math.random() * this.items.length);
-						return this.items[idx];
-					}
-				}
-
-				// ---------- 메인 앱 클래스 (UI와 로직 분리) ----------
-				class RandomBodybuildingApp {
-					constructor() {
-						this.exercisePool = new ExercisePool(DEFAULT_EXERCISES);
-						this.setPool = new SetPool(DEFAULT_SETS);
-						this.posePool = new PosePool(DEFAULT_POSES);
-						this.initUI();
-						this.updateRemainingDisplay();
-						console.log("앱 초기화 완료");
-					}
-
-					initUI() {
-						// DOM 요소 캐싱
-						this.remainingSpan = document.getElementById("remainingCount");
-						this.resultCard = document.getElementById("resultCard");
-						this.drawCountInput = document.getElementById("drawCount");
-						this.editModal = document.getElementById("editModal");
-						this.editExercisesTA = document.getElementById("editExercises");
-						this.editSetsTA = document.getElementById("editSets");
-						this.editPosesTA = document.getElementById("editPoses");
-
-						// 이벤트 리스너 연결
-						document
-							.getElementById("btnPickOne")
-							.addEventListener("click", () => this.handlePickOne());
-						document
-							.getElementById("btnPickMultiple")
-							.addEventListener("click", () => this.handlePickMultiple());
-						document
-							.getElementById("btnPickMultipleSet")
-							.addEventListener("click", () =>
-								this.handlePickMultipleWithSet(),
-							);
-						document
-							.getElementById("btnPickMultipleSetPose")
-							.addEventListener("click", () =>
-								this.handlePickMultipleWithSetAndPose(),
-							);
-						document
-							.getElementById("btnReset")
-							.addEventListener("click", () => this.handleReset());
-						document
-							.getElementById("btnEditList")
-							.addEventListener("click", () => this.openEditModal());
-						document
-							.getElementById("cancelEdit")
-							.addEventListener("click", () => this.closeEditModal());
-						document
-							.getElementById("saveEdit")
-							.addEventListener("click", () => this.saveEditChanges());
-						document
-							.getElementById("resetExercises")
-							.addEventListener("click", () => this.resetExercisesToDefault());
-						document
-							.getElementById("resetSets")
-							.addEventListener("click", () => this.resetSetsToDefault());
-						document
-							.getElementById("resetPoses")
-							.addEventListener("click", () => this.resetPosesToDefault());
-
-						// 모달 바깥 클릭 시 닫기
-						this.editModal.addEventListener("click", (e) => {
-							if (e.target === this.editModal) this.closeEditModal();
-						});
-					}
-
-					// --- 뽑기 개수를 입력 필드에서 직접 읽어오는 메서드 ---
-					getDrawCount() {
-						const val = parseInt(this.drawCountInput.value, 10);
-						return isNaN(val) || val < 1 ? 1 : val;
-					}
-
-					// --- 핸들러 메서드 ---
-					handlePickOne() {
-						const exercise = this.exercisePool.drawOne();
-						if (!exercise) {
-							alert(
-								"더 이상 뽑을 운동 종목이 없습니다. 초기화하거나 목록을 편집해 주세요.",
-							);
-							return;
-						}
-						this.displayResult({
-							exercises: [exercise],
-							set: null,
-							pose: null,
-						});
-						this.updateRemainingDisplay();
-					}
-
-					handlePickMultiple() {
-						const count = this.getDrawCount();
-						if (this.exercisePool.getRemainingCount() < count) {
-							alert(
-								`남은 종목이 ${this.exercisePool.getRemainingCount()}개뿐입니다. 개수를 줄이거나 초기화해 주세요.`,
-							);
-							return;
-						}
-						const exercises = this.exercisePool.drawMultiple(count);
-						if (exercises.length === 0) {
-							alert("뽑을 수 있는 운동이 없습니다.");
-							return;
-						}
-						this.displayResult({ exercises, set: null, pose: null });
-						this.updateRemainingDisplay();
-					}
-
-					handlePickMultipleWithSet() {
-						const count = this.getDrawCount();
-						if (this.exercisePool.getRemainingCount() < count) {
-							alert(
-								`남은 종목이 ${this.exercisePool.getRemainingCount()}개뿐입니다. 개수를 줄이거나 초기화해 주세요.`,
-							);
-							return;
-						}
-						const exercises = this.exercisePool.drawMultiple(count);
-						const set = this.setPool.drawRandom();
-						this.displayResult({ exercises, set, pose: null });
-						this.updateRemainingDisplay();
-					}
-
-					handlePickMultipleWithSetAndPose() {
-						const count = this.getDrawCount();
-						if (this.exercisePool.getRemainingCount() < count) {
-							alert(
-								`남은 종목이 ${this.exercisePool.getRemainingCount()}개뿐입니다. 개수를 줄이거나 초기화해 주세요.`,
-							);
-							return;
-						}
-						const exercises = this.exercisePool.drawMultiple(count);
-						const set = this.setPool.drawRandom();
-						const pose = this.posePool.drawRandom();
-						this.displayResult({ exercises, set, pose });
-						this.updateRemainingDisplay();
-					}
-
-					handleReset() {
-						this.exercisePool.resetPicked();
-						this.updateRemainingDisplay();
-						this.resultCard.classList.remove("visible");
-						this.resultCard.innerHTML = "";
-						console.log("초기화 완료");
-					}
-
-					// --- 결과 표시 ---
-					displayResult({ exercises, set, pose }) {
-						this.resultCard.classList.add("visible");
-						let html = "";
-
-						if (exercises && exercises.length > 0) {
-							html += `<div class="result-section">
-              <div class="result-label">🏋️ 운동 종목</div>
-              <ul class="exercise-list">`;
-							exercises.forEach((ex) => {
-								html += `<li>✅ ${escapeHTML(ex)}</li>`;
-							});
-							html += `</ul></div>`;
-						}
-
-						if (set) {
-							html += `<div class="result-section">
-              <div class="result-label">🔄 세트</div>
-              <div class="set-pose-item">📌 ${escapeHTML(set)}</div>
-            </div>`;
-						}
-
-						if (pose) {
-							html += `<div class="result-section">
-              <div class="result-label">📷 포즈 모음</div>
-              <div class="set-pose-item">🤸 ${escapeHTML(pose)}</div>
-            </div>`;
-						}
-
-						this.resultCard.innerHTML = html;
-						console.log("결과 표시:", { exercises, set, pose });
-					}
-
-					updateRemainingDisplay() {
-						const remaining = this.exercisePool.getRemainingCount();
-						this.remainingSpan.textContent = remaining;
-						console.log("남은 종목:", remaining);
-					}
-
-					// --- 편집 모달 ---
-					openEditModal() {
-						this.editExercisesTA.value = this.exercisePool.items.join("\n");
-						this.editSetsTA.value = this.setPool.items.join("\n");
-						this.editPosesTA.value = this.posePool.items.join("\n");
-						this.editModal.style.display = "flex";
-						console.log("편집 모달 열기");
-					}
-
-					closeEditModal() {
-						this.editModal.style.display = "none";
-						console.log("편집 모달 닫기");
-					}
-
-					saveEditChanges() {
-						const exLines = this.editExercisesTA.value
-							.split("\n")
-							.map((line) => line.trim())
-							.filter((line) => line.length > 0);
-						const setLines = this.editSetsTA.value
-							.split("\n")
-							.map((line) => line.trim())
-							.filter((line) => line.length > 0);
-						const poseLines = this.editPosesTA.value
-							.split("\n")
-							.map((line) => line.trim())
-							.filter((line) => line.length > 0);
-
-						if (exLines.length === 0) {
-							alert("운동 종목을 하나 이상 입력해야 합니다.");
-							return;
-						}
-
-						this.exercisePool.setItems(exLines);
-						this.setPool.setItems(setLines);
-						this.posePool.setItems(poseLines);
-
-						this.updateRemainingDisplay();
-						this.resultCard.classList.remove("visible");
-						this.resultCard.innerHTML = "";
-						this.closeEditModal();
-						console.log("목록 편집 저장 완료");
-					}
-
-					resetExercisesToDefault() {
-						this.editExercisesTA.value = DEFAULT_EXERCISES.join("\n");
-						console.log("운동 기본값 복원");
-					}
-
-					resetSetsToDefault() {
-						this.editSetsTA.value = DEFAULT_SETS.join("\n");
-						console.log("세트 기본값 복원");
-					}
-
-					resetPosesToDefault() {
-						this.editPosesTA.value = DEFAULT_POSES.join("\n");
-						console.log("포즈 기본값 복원");
-					}
-				}
-
 				// HTML 이스케이프 헬퍼
-				function escapeHTML(str) {
+				var escapeHTML = function (str) {
 					return String(str)
 						.replace(/&/g, "&amp;")
 						.replace(/</g, "&lt;")
 						.replace(/>/g, "&gt;")
 						.replace(/"/g, "&quot;")
 						.replace(/'/g, "&#039;");
-				}
+				};
+
+				// ---------- 풀(Pool) 관리 클래스 (ES5 생성자 함수) ----------
+				var ExercisePool = function (items) {
+					// 기본 매개변수 처리
+					if (!items) items = [];
+					this.items = items.slice(); // 배열 복사
+					this.picked = {}; // 선택된 항목을 객체 키로 관리
+				};
+
+				ExercisePool.prototype.resetPicked = function () {
+					this.picked = {};
+					console.log("운동 종목 선택 기록 초기화");
+				};
+
+				ExercisePool.prototype.setItems = function (newItems) {
+					this.items = newItems.slice(); // 복사
+					this.picked = {}; // 풀이 바뀌면 선택 기록도 초기화
+					console.log("운동 풀 업데이트, 개수:" + this.items.length);
+				};
+
+				ExercisePool.prototype.getRemainingCount = function () {
+					return this.items.length - Object.keys(this.picked).length;
+				};
+
+				ExercisePool.prototype.getAvailableItems = function () {
+					var self = this;
+					return this.items.filter(function (item) {
+						return !self.picked[item];
+					});
+				};
+
+				ExercisePool.prototype.drawOne = function () {
+					var available = this.getAvailableItems();
+					if (available.length === 0) return null;
+					var randomIndex = Math.floor(Math.random() * available.length);
+					var chosen = available[randomIndex];
+					this.picked[chosen] = true;
+					console.log("운동 1개 뽑음:" + chosen);
+					return chosen;
+				};
+
+				ExercisePool.prototype.drawMultiple = function (count) {
+					var available = this.getAvailableItems();
+					if (available.length === 0) return [];
+					var shuffled = shuffleArray(available.slice()); // 복사해서 셔플
+					var toPick = Math.min(count, shuffled.length);
+					var chosen = shuffled.slice(0, toPick);
+					var self = this;
+					chosen.forEach(function (item) {
+						self.picked[item] = true;
+					});
+					console.log("운동 " + toPick + "개 뽑음:" + chosen.join(", "));
+					return chosen;
+				};
+
+				var SetPool = function (items) {
+					if (!items) items = [];
+					this.items = items.slice();
+				};
+
+				SetPool.prototype.setItems = function (newItems) {
+					this.items = newItems.slice();
+					console.log("세트 풀 업데이트:" + this.items.length);
+				};
+
+				SetPool.prototype.drawRandom = function () {
+					if (this.items.length === 0) return null;
+					var idx = Math.floor(Math.random() * this.items.length);
+					return this.items[idx];
+				};
+
+				var PosePool = function (items) {
+					if (!items) items = [];
+					this.items = items.slice();
+				};
+
+				PosePool.prototype.setItems = function (newItems) {
+					this.items = newItems.slice();
+					console.log("포즈 풀 업데이트:" + this.items.length);
+				};
+
+				PosePool.prototype.drawRandom = function () {
+					if (this.items.length === 0) return null;
+					var idx = Math.floor(Math.random() * this.items.length);
+					return this.items[idx];
+				};
+
+				// ---------- 메인 앱 클래스 (UI와 로직 분리) ----------
+				var RandomBodybuildingApp = function () {
+					this.exercisePool = new ExercisePool(DEFAULT_EXERCISES);
+					this.setPool = new SetPool(DEFAULT_SETS);
+					this.posePool = new PosePool(DEFAULT_POSES);
+					this.initUI();
+					this.updateRemainingDisplay();
+					console.log("앱 초기화 완료");
+				};
+
+				RandomBodybuildingApp.prototype.initUI = function () {
+					var self = this;
+
+					// DOM 요소 캐싱
+					this.remainingSpan = document.getElementById("remainingCount");
+					this.resultCard = document.getElementById("resultCard");
+					this.drawCountInput = document.getElementById("drawCount");
+					this.editModal = document.getElementById("editModal");
+					this.editExercisesTA = document.getElementById("editExercises");
+					this.editSetsTA = document.getElementById("editSets");
+					this.editPosesTA = document.getElementById("editPoses");
+
+					// 이벤트 리스너 연결
+					document
+						.getElementById("btnPickOne")
+						.addEventListener("click", function () {
+							self.handlePickOne();
+						});
+					document
+						.getElementById("btnPickMultiple")
+						.addEventListener("click", function () {
+							self.handlePickMultiple();
+						});
+					document
+						.getElementById("btnPickMultipleSet")
+						.addEventListener("click", function () {
+							self.handlePickMultipleWithSet();
+						});
+					document
+						.getElementById("btnPickMultipleSetPose")
+						.addEventListener("click", function () {
+							self.handlePickMultipleWithSetAndPose();
+						});
+					document
+						.getElementById("btnReset")
+						.addEventListener("click", function () {
+							self.handleReset();
+						});
+					document
+						.getElementById("btnEditList")
+						.addEventListener("click", function () {
+							self.openEditModal();
+						});
+					document
+						.getElementById("cancelEdit")
+						.addEventListener("click", function () {
+							self.closeEditModal();
+						});
+					document
+						.getElementById("saveEdit")
+						.addEventListener("click", function () {
+							self.saveEditChanges();
+						});
+					document
+						.getElementById("resetExercises")
+						.addEventListener("click", function () {
+							self.resetExercisesToDefault();
+						});
+					document
+						.getElementById("resetSets")
+						.addEventListener("click", function () {
+							self.resetSetsToDefault();
+						});
+					document
+						.getElementById("resetPoses")
+						.addEventListener("click", function () {
+							self.resetPosesToDefault();
+						});
+
+					// 모달 바깥 클릭 시 닫기
+					this.editModal.addEventListener("click", function (e) {
+						if (e.target === self.editModal) self.closeEditModal();
+					});
+				};
+
+				// --- 뽑기 개수를 입력 필드에서 직접 읽어오는 메서드 ---
+				RandomBodybuildingApp.prototype.getDrawCount = function () {
+					var val = parseInt(this.drawCountInput.value, 10);
+					return isNaN(val) || val < 1 ? 1 : val;
+				};
+
+				// --- 핸들러 메서드 ---
+				RandomBodybuildingApp.prototype.handlePickOne = function () {
+					var exercise = this.exercisePool.drawOne();
+					if (!exercise) {
+						alert(
+							"더 이상 뽑을 운동 종목이 없습니다. 초기화하거나 목록을 편집해 주세요.",
+						);
+						return;
+					}
+					this.displayResult({ exercises: [exercise], set: null, pose: null });
+					this.updateRemainingDisplay();
+				};
+
+				RandomBodybuildingApp.prototype.handlePickMultiple = function () {
+					var count = this.getDrawCount();
+					if (this.exercisePool.getRemainingCount() < count) {
+						alert(
+							"남은 종목이 " +
+								this.exercisePool.getRemainingCount() +
+								"개뿐입니다. 개수를 줄이거나 초기화해 주세요.",
+						);
+						return;
+					}
+					var exercises = this.exercisePool.drawMultiple(count);
+					if (exercises.length === 0) {
+						alert("뽑을 수 있는 운동이 없습니다.");
+						return;
+					}
+					this.displayResult({ exercises: exercises, set: null, pose: null });
+					this.updateRemainingDisplay();
+				};
+
+				RandomBodybuildingApp.prototype.handlePickMultipleWithSet =
+					function () {
+						var count = this.getDrawCount();
+						if (this.exercisePool.getRemainingCount() < count) {
+							alert(
+								"남은 종목이 " +
+									this.exercisePool.getRemainingCount() +
+									"개뿐입니다. 개수를 줄이거나 초기화해 주세요.",
+							);
+							return;
+						}
+						var exercises = this.exercisePool.drawMultiple(count);
+						var set = this.setPool.drawRandom();
+						this.displayResult({ exercises: exercises, set: set, pose: null });
+						this.updateRemainingDisplay();
+					};
+
+				RandomBodybuildingApp.prototype.handlePickMultipleWithSetAndPose =
+					function () {
+						var count = this.getDrawCount();
+						if (this.exercisePool.getRemainingCount() < count) {
+							alert(
+								"남은 종목이 " +
+									this.exercisePool.getRemainingCount() +
+									"개뿐입니다. 개수를 줄이거나 초기화해 주세요.",
+							);
+							return;
+						}
+						var exercises = this.exercisePool.drawMultiple(count);
+						var set = this.setPool.drawRandom();
+						var pose = this.posePool.drawRandom();
+						this.displayResult({ exercises: exercises, set: set, pose: pose });
+						this.updateRemainingDisplay();
+					};
+
+				RandomBodybuildingApp.prototype.handleReset = function () {
+					this.exercisePool.resetPicked();
+					this.updateRemainingDisplay();
+					this.resultCard.classList.remove("visible");
+					this.resultCard.innerHTML = "";
+					console.log("초기화 완료");
+				};
+
+				// --- 결과 표시 ---
+				RandomBodybuildingApp.prototype.displayResult = function (result) {
+					var exercises = result.exercises;
+					var set = result.set;
+					var pose = result.pose;
+					this.resultCard.classList.add("visible");
+					var html = "";
+
+					if (exercises && exercises.length > 0) {
+						html +=
+							'<div class="result-section">' +
+							'<div class="result-label">🏋️ 운동 종목</div>' +
+							'<ul class="exercise-list">';
+						exercises.forEach(function (ex) {
+							html += "<li>✅ " + escapeHTML(ex) + "</li>";
+						});
+						html += "</ul></div>";
+					}
+
+					if (set) {
+						html +=
+							'<div class="result-section">' +
+							'<div class="result-label">🔄 세트</div>' +
+							'<div class="set-pose-item">📌 ' +
+							escapeHTML(set) +
+							"</div>" +
+							"</div>";
+					}
+
+					if (pose) {
+						html +=
+							'<div class="result-section">' +
+							'<div class="result-label">📷 포즈 모음</div>' +
+							'<div class="set-pose-item">🤸 ' +
+							escapeHTML(pose) +
+							"</div>" +
+							"</div>";
+					}
+
+					this.resultCard.innerHTML = html;
+					console.log("결과 표시:", result);
+				};
+
+				RandomBodybuildingApp.prototype.updateRemainingDisplay = function () {
+					var remaining = this.exercisePool.getRemainingCount();
+					this.remainingSpan.textContent = remaining;
+					console.log("남은 종목: " + remaining);
+				};
+
+				// --- 편집 모달 ---
+				RandomBodybuildingApp.prototype.openEditModal = function () {
+					this.editExercisesTA.value = this.exercisePool.items.join("\n");
+					this.editSetsTA.value = this.setPool.items.join("\n");
+					this.editPosesTA.value = this.posePool.items.join("\n");
+					this.editModal.style.display = "flex";
+					console.log("편집 모달 열기");
+				};
+
+				RandomBodybuildingApp.prototype.closeEditModal = function () {
+					this.editModal.style.display = "none";
+					console.log("편집 모달 닫기");
+				};
+
+				RandomBodybuildingApp.prototype.saveEditChanges = function () {
+					var exLines = this.editExercisesTA.value
+						.split("\n")
+						.map(function (line) {
+							return line.trim();
+						})
+						.filter(function (line) {
+							return line.length > 0;
+						});
+					var setLines = this.editSetsTA.value
+						.split("\n")
+						.map(function (line) {
+							return line.trim();
+						})
+						.filter(function (line) {
+							return line.length > 0;
+						});
+					var poseLines = this.editPosesTA.value
+						.split("\n")
+						.map(function (line) {
+							return line.trim();
+						})
+						.filter(function (line) {
+							return line.length > 0;
+						});
+
+					if (exLines.length === 0) {
+						alert("운동 종목을 하나 이상 입력해야 합니다.");
+						return;
+					}
+
+					this.exercisePool.setItems(exLines);
+					this.setPool.setItems(setLines);
+					this.posePool.setItems(poseLines);
+
+					this.updateRemainingDisplay();
+					this.resultCard.classList.remove("visible");
+					this.resultCard.innerHTML = "";
+					this.closeEditModal();
+					console.log("목록 편집 저장 완료");
+				};
+
+				RandomBodybuildingApp.prototype.resetExercisesToDefault = function () {
+					this.editExercisesTA.value = DEFAULT_EXERCISES.join("\n");
+					console.log("운동 기본값 복원");
+				};
+
+				RandomBodybuildingApp.prototype.resetSetsToDefault = function () {
+					this.editSetsTA.value = DEFAULT_SETS.join("\n");
+					console.log("세트 기본값 복원");
+				};
+
+				RandomBodybuildingApp.prototype.resetPosesToDefault = function () {
+					this.editPosesTA.value = DEFAULT_POSES.join("\n");
+					console.log("포즈 기본값 복원");
+				};
 
 				// ---------- 앱 시작 ----------
-				const app = new RandomBodybuildingApp();
+				var app = new RandomBodybuildingApp();
 				// 테스트 용이성을 위해 전역 노출 (개발자 도구에서 접근 가능)
 				window.__app = app;
 			})();
