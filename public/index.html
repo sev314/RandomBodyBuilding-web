@@ -323,7 +323,7 @@
 				</div>
 				<div class="button-row">
 					<button id="btnPickMultipleSet">📋➕세트</button>
-					<button id="btnPickMultipleSetPose">📋➕세트➕포즈</button>
+					<button id="btnPickMultipleSetPose">📋➕세트➕포징</button>
 				</div>
 				<div class="button-row">
 					<button id="btnReset" class="primary">🔄 초기화</button>
@@ -364,7 +364,7 @@
 				</div>
 				<div class="edit-section">
 					<label
-						>포즈 모음 목록
+						>포징 모음 목록
 						<button class="reset-small" id="resetPoses">
 							기본값 복원
 						</button></label
@@ -563,7 +563,7 @@
 
 				PosePool.prototype.setItems = function (newItems) {
 					this.items = newItems.slice();
-					console.log("포즈 풀 업데이트:" + this.items.length);
+					console.log("포징 풀 업데이트:" + this.items.length);
 				};
 
 				PosePool.prototype.drawRandom = function () {
@@ -770,7 +770,7 @@
 					if (pose) {
 						html +=
 							'<div class="result-section">' +
-							'<div class="result-label">📷 포즈 모음</div>' +
+							'<div class="result-label">📷 포징 모음</div>' +
 							'<div class="set-pose-item">🤸 ' +
 							escapeHTML(pose) +
 							"</div>" +
@@ -855,7 +855,7 @@
 
 				RandomBodybuildingApp.prototype.resetPosesToDefault = function () {
 					this.editPosesTA.value = DEFAULT_POSES.join("\n");
-					console.log("포즈 기본값 복원");
+					console.log("포징 기본값 복원");
 				};
 
 				// ---------- 앱 시작 ----------
