@@ -303,6 +303,9 @@
 			<div class="remaining-badge" id="remainingDisplay">
 				<span>🏋️ 남은 종목</span> <span id="remainingCount">0</span>
 			</div>
+			<div class="remaining-badge" id="remainingSetsDisplay">
+				<span>🔄 남은 세트</span> <span id="remainingSetsCount">0</span>
+			</div>
 
 			<div class="count-input-area">
 				<label for="drawCount">뽑을 개수</label>
@@ -442,7 +445,7 @@
 					"어깨 트라이세트",
 					"등 트라이세트",
 					"가슴 트라이세트",
-					"전완 트라이세트",
+					"전완 신전 컴파운드세트",
 					"복부 트라이세트",
 					"하체 컴파운드세트",
 					"삼두 컴파운드세트",
@@ -450,7 +453,7 @@
 					"어깨 컴파운드세트",
 					"등 컴파운드세트",
 					"가슴 컴파운드세트",
-					"전완 컴파운드세트",
+					"전완 굴곡 컴파운드세트",
 					"복부 컴파운드세트",
 					"이두·삼두 슈퍼세트",
 				];
@@ -486,43 +489,54 @@
 						.replace(/'/g, "&#039;");
 				};
 
-				// ---------- 풀(Pool) 관리 클래스 (ES5 생성자 함수) ----------
-				var ExercisePool = function (items) {
-					// 기본 매개변수 처리
-					if (!items) items = [];
-					this.items = items.slice(); // 배열 복사
+				// ---------- 공통 풀(Pool) 클래스 (중복 제거) ----------
+				var BasePool = function (items) {
+					this.items = items ? items.slice() : [];
 					this.picked = {}; // 선택된 항목을 객체 키로 관리
 				};
 
-				ExercisePool.prototype.resetPicked = function () {
+				BasePool.prototype.resetPicked = function () {
 					this.picked = {};
-					console.log("운동 종목 선택 기록 초기화");
 				};
 
-				ExercisePool.prototype.setItems = function (newItems) {
+				BasePool.prototype.setItems = function (newItems) {
 					this.items = newItems.slice(); // 복사
 					this.picked = {}; // 풀이 바뀌면 선택 기록도 초기화
-					console.log("운동 풀 업데이트, 개수:" + this.items.length);
 				};
 
-				ExercisePool.prototype.getRemainingCount = function () {
+				BasePool.prototype.getRemainingCount = function () {
 					return this.items.length - Object.keys(this.picked).length;
 				};
 
-				ExercisePool.prototype.getAvailableItems = function () {
+				BasePool.prototype.getAvailableItems = function () {
 					var self = this;
 					return this.items.filter(function (item) {
 						return !self.picked[item];
 					});
 				};
 
-				ExercisePool.prototype.drawOne = function () {
+				BasePool.prototype.drawOne = function () {
 					var available = this.getAvailableItems();
 					if (available.length === 0) return null;
-					var randomIndex = Math.floor(Math.random() * available.length);
-					var chosen = available[randomIndex];
+					var idx = Math.floor(Math.random() * available.length);
+					var chosen = available[idx];
 					this.picked[chosen] = true;
-					console.log("운동 1개 뽑음:" + chosen);
+					return chosen;
+				};
+
+				// ---------- 운동 종목 풀 (BasePool 확장) ----------
+				var ExercisePool = function (items) {
+					BasePool.call(this, items);
+				};
+				ExercisePool.prototype = Object.create(BasePool.prototype);
+				ExercisePool.prototype.constructor = ExercisePool;
+
+				// 운동 전용 로깅을 포함한 drawOne 오버라이드
+				ExercisePool.prototype.drawOne = function () {
+					var chosen = BasePool.prototype.drawOne.call(this);
+					if (chosen) {
+						console.log("운동 1개 뽑음:" + chosen);
+					}
 					return chosen;
 				};
 
@@ -540,22 +554,23 @@
 					return chosen;
 				};
 
+				// ---------- 세트 풀 (BasePool 확장, 중복 뽑기 방지) ----------
 				var SetPool = function (items) {
-					if (!items) items = [];
-					this.items = items.slice();
+					BasePool.call(this, items);
 				};
+				SetPool.prototype = Object.create(BasePool.prototype);
+				SetPool.prototype.constructor = SetPool;
 
-				SetPool.prototype.setItems = function (newItems) {
-					this.items = newItems.slice();
-					console.log("세트 풀 업데이트:" + this.items.length);
-				};
-
+				// 세트 전용 로깅과 함께 drawRandom 구현 (내부적으로 drawOne 사용)
 				SetPool.prototype.drawRandom = function () {
-					if (this.items.length === 0) return null;
-					var idx = Math.floor(Math.random() * this.items.length);
-					return this.items[idx];
+					var chosen = this.drawOne(); // BasePool의 drawOne 상속
+					if (chosen) {
+						console.log("세트 1개 뽑음:" + chosen);
+					}
+					return chosen;
 				};
 
+				// ---------- 포즈 풀 (별도, 중복 추적 불필요) ----------
 				var PosePool = function (items) {
 					if (!items) items = [];
 					this.items = items.slice();
@@ -572,7 +587,7 @@
 					return this.items[idx];
 				};
 
-				// ---------- 메인 앱 클래스 (UI와 로직 분리) ----------
+				// ---------- 메인 앱 클래스 ----------
 				var RandomBodybuildingApp = function () {
 					this.exercisePool = new ExercisePool(DEFAULT_EXERCISES);
 					this.setPool = new SetPool(DEFAULT_SETS);
@@ -587,6 +602,8 @@
 
 					// DOM 요소 캐싱
 					this.remainingSpan = document.getElementById("remainingCount");
+					this.remainingSetsSpan =
+						document.getElementById("remainingSetsCount");
 					this.resultCard = document.getElementById("resultCard");
 					this.drawCountInput = document.getElementById("drawCount");
 					this.editModal = document.getElementById("editModal");
@@ -697,6 +714,13 @@
 
 				RandomBodybuildingApp.prototype.handlePickMultipleWithSet =
 					function () {
+						// 세트 중복 방지: 세트 잔여량 먼저 확인
+						if (this.setPool.getRemainingCount() === 0) {
+							alert(
+								"더 이상 뽑을 세트가 없습니다. 초기화하거나 목록을 편집해 주세요.",
+							);
+							return;
+						}
 						var count = this.getDrawCount();
 						if (this.exercisePool.getRemainingCount() < count) {
 							alert(
@@ -714,6 +738,12 @@
 
 				RandomBodybuildingApp.prototype.handlePickMultipleWithSetAndPose =
 					function () {
+						if (this.setPool.getRemainingCount() === 0) {
+							alert(
+								"더 이상 뽑을 세트가 없습니다. 초기화하거나 목록을 편집해 주세요.",
+							);
+							return;
+						}
 						var count = this.getDrawCount();
 						if (this.exercisePool.getRemainingCount() < count) {
 							alert(
@@ -732,10 +762,11 @@
 
 				RandomBodybuildingApp.prototype.handleReset = function () {
 					this.exercisePool.resetPicked();
+					this.setPool.resetPicked();
 					this.updateRemainingDisplay();
 					this.resultCard.classList.remove("visible");
 					this.resultCard.innerHTML = "";
-					console.log("초기화 완료");
+					console.log("초기화 완료 (운동, 세트)");
 				};
 
 				// --- 결과 표시 ---
@@ -782,9 +813,13 @@
 				};
 
 				RandomBodybuildingApp.prototype.updateRemainingDisplay = function () {
-					var remaining = this.exercisePool.getRemainingCount();
-					this.remainingSpan.textContent = remaining;
-					console.log("남은 종목: " + remaining);
+					var remainingEx = this.exercisePool.getRemainingCount();
+					var remainingSet = this.setPool.getRemainingCount();
+					this.remainingSpan.textContent = remainingEx;
+					this.remainingSetsSpan.textContent = remainingSet;
+					console.log(
+						"남은 종목: " + remainingEx + ", 남은 세트: " + remainingSet,
+					);
 				};
 
 				// --- 편집 모달 ---
