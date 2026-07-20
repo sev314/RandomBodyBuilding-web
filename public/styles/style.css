@@ -5,6 +5,48 @@
 	모바일(안드로이드 및 아이폰)과 데스크톱을 다 지원합니다.
 */
 
+/* --- 바탕 빛깔, 초록 계열, 그림자, 둥근 모서리 --- */
+:root {
+	/* 바탕 빛깔 */
+	--color-bg-body: #f0f4f1;
+	--color-bg-white: #ffffff;
+	--color-bg-card: #f1f8e9;
+	--color-bg-muted: #f5f5f5;
+	--color-bg-input: #f9fdf9;
+
+	/* 초록 계열 */
+	--color-green-900: #1b5e20;
+	--color-green-700: #2e7d32;
+	--color-green-500: #4caf50;
+	--color-green-300: #a5d6a7;
+	--color-green-200: #c8e6c9;
+	--color-green-100: #e8f5e9;
+
+	/* 텍스트 */
+	--color-text-dark: #1b1b1b;
+
+	/* 그림자 */
+	--shadow-container: 0 12px 30px rgba(0, 80, 20, 0.12);
+	--shadow-badge: 0 2px 8px rgba(0, 100, 0, 0.1);
+	--shadow-button: 0 4px 12px rgba(46, 125, 50, 0.15);
+	--shadow-button-primary: 0 6px 14px rgba(27, 94, 32, 0.3);
+	--shadow-button-active: 0 2px 6px rgba(0, 80, 20, 0.2);
+	--shadow-result: 0 8px 24px rgba(0, 80, 20, 0.1);
+	--shadow-section: 0 2px 8px rgba(0, 0, 0, 0.05);
+	--shadow-modal: 0 20px 40px rgba(0, 0, 0, 0.25);
+
+	/* 오버레이 */
+	--overlay-bg: rgba(0, 30, 10, 0.6);
+
+	/* 둥근 모서리 */
+	--radius-sm: 1rem;
+	--radius-md: 1.2rem;
+	--radius-ml: 1.5rem;
+	--radius-lg: 1.8rem;
+	--radius-xl: 2rem;
+	--radius-pill: 3rem;
+}
+
 /* --- 바탕 및 전체 --- */
 /* 초기화 / 리셋 */
 * {
@@ -17,10 +59,7 @@
 /* body / 페이지 레이아웃 */
 body {
 	font-family: "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-
-	/* 연한 초록 */
-	background: #f0f4f1;
-
+	background: var(--color-bg-body);
 	display: flex;
 	justify-content: center;
 	align-items: flex-start;
@@ -33,9 +72,9 @@ body {
 .container {
 	width: 100%;
 	max-width: 520px;
-	background: white;
-	border-radius: 2rem;
-	box-shadow: 0 12px 30px rgba(0, 80, 20, 0.12);
+	background: var(--color-bg-white);
+	border-radius: var(--radius-xl);
+	box-shadow: var(--shadow-container);
 	padding: 1.8rem 1.5rem 2rem;
 	display: flex;
 	flex-direction: column;
@@ -46,7 +85,7 @@ body {
 h1 {
 	font-size: 1.9rem;
 	font-weight: 700;
-	color: #1b5e20;
+	color: var(--color-green-900);
 	text-align: center;
 	letter-spacing: -0.5px;
 	margin-bottom: 0.2rem;
@@ -54,10 +93,10 @@ h1 {
 
 /* --- 상태 배지 --- */
 .remaining-badge {
-	background: #e8f5e9;
-	color: #2e7d32;
+	background: var(--color-green-100);
+	color: var(--color-green-700);
 	padding: 0.5rem 1.2rem;
-	border-radius: 3rem;
+	border-radius: var(--radius-pill);
 	font-weight: 600;
 	font-size: 0.95rem;
 	display: flex;
@@ -65,7 +104,7 @@ h1 {
 	justify-content: center;
 	gap: 0.4rem;
 	align-self: center;
-	box-shadow: 0 2px 8px rgba(0, 100, 0, 0.1);
+	box-shadow: var(--shadow-badge);
 }
 
 /* --- 뽑기 개수 입력 --- */
@@ -79,20 +118,20 @@ h1 {
 
 .count-input-area label {
 	font-weight: 600;
-	color: #1b5e20;
+	color: var(--color-green-900);
 	font-size: 1rem;
 }
 
 #drawCount {
 	width: 4rem;
 	padding: 0.55rem 0.4rem;
-	border: 2px solid #a5d6a7;
-	border-radius: 1rem;
+	border: 2px solid var(--color-green-300);
+	border-radius: var(--radius-sm);
 	text-align: center;
 	font-size: 1rem;
 	font-weight: 600;
-	color: #1b5e20;
-	background: white;
+	color: var(--color-green-900);
+	background: var(--color-bg-white);
 }
 
 /* --- 버튼 --- */
@@ -112,13 +151,13 @@ h1 {
 button {
 	border: none;
 	padding: 0.9rem 1.2rem;
-	border-radius: 2rem;
+	border-radius: var(--radius-xl);
 	font-weight: 600;
 	font-size: 0.95rem;
-	color: #1b5e20;
-	background: #ffffff;
-	box-shadow: 0 4px 12px rgba(46, 125, 50, 0.15);
-	border: 1px solid #c8e6c9;
+	color: var(--color-green-900);
+	background: var(--color-bg-white);
+	box-shadow: var(--shadow-button);
+	border: 1px solid var(--color-green-200);
 	transition: all 0.2s ease;
 	cursor: pointer;
 	flex: 1 1 auto;
@@ -128,30 +167,30 @@ button {
 }
 
 button:active {
-	background: #c8e6c9;
-	box-shadow: 0 2px 6px rgba(0, 80, 20, 0.2);
+	background: var(--color-green-200);
+	box-shadow: var(--shadow-button-active);
 	transform: scale(0.97);
 }
 
 button.primary {
-	background: #2e7d32;
-	color: white;
-	border: 1px solid #1b5e20;
-	box-shadow: 0 6px 14px rgba(27, 94, 32, 0.3);
+	background: var(--color-green-700);
+	color: var(--color-bg-white);
+	border: 1px solid var(--color-green-900);
+	box-shadow: var(--shadow-button-primary);
 	font-weight: 700;
 }
 
 button.primary:active {
-	background: #1b5e20;
+	background: var(--color-green-900);
 }
 
 /* --- 결과 카드 --- */
 .result-card {
-	background: #f1f8e9;
-	border-radius: 1.8rem;
+	background: var(--color-bg-card);
+	border-radius: var(--radius-lg);
 	padding: 1.6rem 1.4rem;
-	box-shadow: 0 8px 24px rgba(0, 80, 20, 0.1);
-	border: 1px solid #c8e6c9;
+	box-shadow: var(--shadow-result);
+	border: 1px solid var(--color-green-200);
 	display: none;
 	flex-direction: column;
 	gap: 1rem;
@@ -162,16 +201,16 @@ button.primary:active {
 }
 
 .result-section {
-	background: white;
-	border-radius: 1.2rem;
+	background: var(--color-bg-white);
+	border-radius: var(--radius-md);
 	padding: 1rem 1.2rem;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+	box-shadow: var(--shadow-section);
 }
 
 .result-label {
 	font-size: 0.85rem;
 	font-weight: 700;
-	color: #2e7d32;
+	color: var(--color-green-700);
 	margin-bottom: 0.5rem;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
@@ -188,24 +227,24 @@ button.primary:active {
 .exercise-list li {
 	font-weight: 600;
 	font-size: 1.1rem;
-	color: #1b1b1b;
-	background: #f5f5f5;
+	color: var(--color-text-dark);
+	background: var(--color-bg-muted);
 	padding: 0.7rem 1rem;
-	border-radius: 1rem;
+	border-radius: var(--radius-sm);
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
-	border-left: 5px solid #4caf50;
+	border-left: 5px solid var(--color-green-500);
 }
 
 /* --- 세트·포즈 아이템 --- */
 .set-pose-item {
 	font-weight: 700;
 	font-size: 1.2rem;
-	color: #1b5e20;
-	background: #e8f5e9;
+	color: var(--color-green-900);
+	background: var(--color-green-100);
 	padding: 0.8rem 1.2rem;
-	border-radius: 1rem;
+	border-radius: var(--radius-sm);
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
@@ -218,7 +257,7 @@ button.primary:active {
 	left: 0;
 	width: 100%;
 	height: 100%;
-	background: rgba(0, 30, 10, 0.6);
+	background: var(--overlay-bg);
 	backdrop-filter: blur(4px);
 	-webkit-backdrop-filter: blur(4px); /* iOS 호환 */
 	display: none;
@@ -230,21 +269,21 @@ button.primary:active {
 
 /* --- 모달 안쪽 --- */
 .modal {
-	background: white;
-	border-radius: 2rem;
+	background: var(--color-bg-white);
+	border-radius: var(--radius-xl);
 	max-width: 550px;
 	width: 100%;
 	max-height: 85vh;
 	overflow-y: auto;
 	padding: 1.8rem 1.5rem;
-	box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+	box-shadow: var(--shadow-modal);
 	display: flex;
 	flex-direction: column;
 	gap: 1.4rem;
 }
 
 .modal h2 {
-	color: #1b5e20;
+	color: var(--color-green-900);
 	text-align: center;
 	font-size: 1.5rem;
 }
@@ -257,7 +296,7 @@ button.primary:active {
 
 .edit-section label {
 	font-weight: 700;
-	color: #2e7d32;
+	color: var(--color-green-700);
 	font-size: 0.9rem;
 	display: flex;
 	justify-content: space-between;
@@ -267,13 +306,13 @@ button.primary:active {
 .edit-section textarea {
 	width: 100%;
 	height: 120px;
-	border: 2px solid #a5d6a7;
-	border-radius: 1rem;
+	border: 2px solid var(--color-green-300);
+	border-radius: var(--radius-sm);
 	padding: 0.8rem;
 	font-size: 0.9rem;
 	font-family: inherit;
 	resize: vertical;
-	background: #f9fdf9;
+	background: var(--color-bg-input);
 }
 
 .modal-actions {
@@ -286,11 +325,11 @@ button.primary:active {
 /* --- 기본값 복원 버튼 --- */
 .reset-small {
 	background: none;
-	border: 1px solid #a5d6a7;
-	color: #2e7d32;
+	border: 1px solid var(--color-green-300);
+	color: var(--color-green-700);
 	padding: 0.3rem 0.9rem;
 	font-size: 0.8rem;
-	border-radius: 1.5rem;
+	border-radius: var(--radius-ml);
 	font-weight: 600;
 	box-shadow: none;
 	min-width: auto;
