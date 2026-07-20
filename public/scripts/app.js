@@ -622,6 +622,55 @@
 		console.log("목록 편집 저장 완료");
 	};
 
+	/**
+	 * 뽑기를 시도하기 전에 세트·종목 잔여량을 검증합니다.
+	 * includeSet이 true이면 세트 잔여량도 함께 확인합니다.
+	 * 검증을 통과하면 true, 아니면 alert를 띄우고 false를 반환합니다.
+	 */
+	RandomBodybuildingApp.prototype.validateDraw = function (includeSet) {
+		if (includeSet && this.setPool.getRemainingCount() === 0) {
+			alert(
+				"더 이상 뽑을 세트가 없습니다. 초기화하거나 목록을 편집해 주세요.",
+			);
+			return false;
+		}
+
+		var count = this.getDrawCount();
+
+		if (this.exercisePool.getRemainingCount() < count) {
+			alert(
+				"남은 종목이 " +
+					this.exercisePool.getRemainingCount() +
+					"개뿐입니다. 개수를 줄이거나 초기화해 주세요.",
+			);
+			return false;
+		}
+
+		return true;
+	};
+
+	/**
+	 * 텍스트 영역의 내용을 주어진 기본값 배열로 되돌립니다.
+	 */
+	RandomBodybuildingApp.prototype.restoreDefaults = function (textarea, defaults) {
+		textarea.value = defaults.join("\n");
+	};
+
+	/**
+	 * 텍스트 영역의 내용을 줄 단위로 파싱하여
+	 * 앞뒤 공백이 제거된 빈 줄이 없는 문자열 배열로 반환합니다.
+	 */
+	RandomBodybuildingApp.prototype.parseTextareaLines = function (textarea) {
+		return textarea.value
+			.split("\n")
+			.map(function (line) {
+				return line.trim();
+			})
+			.filter(function (line) {
+				return line.length > 0;
+			});
+	};
+
 	RandomBodybuildingApp.prototype.resetExercisesToDefault = function () {
 		this.editExercisesTA.value = DEFAULT_EXERCISES.join("\n");
 		console.log("운동 기본값 복원");

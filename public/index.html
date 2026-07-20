@@ -21,7 +21,7 @@
 	</head>
 
 	<body>
-		<!-- 메인 카드 -->
+		<!-- 메인 카드: 제목, 상태 표시, 입력, 버튼, 결과가 모두 이 안에 들어있습니다. -->
 		<div class="container">
 			<!-- 제목 -->
 			<h1>🏋️ 랜덤 보디빌딩</h1>
@@ -50,7 +50,8 @@
 				/>
 			</div>
 
-			<!-- 버튼 -->
+			<!-- 버튼 종류:
+			     종목 하나 뽑기 / 종목 여럿 뽑기 / 종목+세트 / 종목+세트+포징 / 초기화 / 목록 편집 -->
 			<div class="button-grid">
 				<div class="button-row">
 					<button id="btnPickOne">🎯 종목 하나 뽑기</button>
@@ -73,7 +74,7 @@
 			</div>
 		</div>
 
-		<!-- 편집 모달 - 숨겨진 상태 -->
+		<!-- 편집 모달 - 숨겨진 상태. 목록 편집 버튼을 누르면 `display: flex`로 열립니다. -->
 		<div id="editModal" class="modal-overlay">
 			<div class="modal">
 				<h2>📝 목록 편집</h2>

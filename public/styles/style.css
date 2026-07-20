@@ -1,13 +1,20 @@
-/* 빨강 빛깔은 덥고 뜨거운 느낌을 주기 때문에 초록 빛깔이 더 낫습니다. */
+/*
+	이 CSS 파일은 『랜덤 보디빌딩』 웹 애플리케이션의 시각적 모양을 꾸밉니다.
+	빛깔은 초록 계열로 통일하였기 때문에 덥지 않고 시원한 느낌을 줍니다.
+	카드형 레이아웃으로 어떤 길이의 글월도 레이아웃이 깨지지 않게 합니다.
+	모바일(안드로이드 및 아이폰)과 데스크톱을 다 지원합니다.
+*/
 
-/* 뽑은 종목이 몇 개든 종목 이름이 짧든 길든 세트 이름이 짧든 길든 포즈 모음 이름이 짧든 길든 화면 레이아웃이 흔들리지 않습니다. */
-
+/* --- 바탕 및 전체 --- */
+/* 초기화 / 리셋 */
 * {
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
 }
 
+/* --- 바디 --- */
+/* body / 페이지 레이아웃 */
 body {
 	font-family: "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
 
@@ -22,6 +29,7 @@ body {
 	margin: 0;
 }
 
+/* --- 메인 컨테이너 --- */
 .container {
 	width: 100%;
 	max-width: 520px;
@@ -34,6 +42,7 @@ body {
 	gap: 1.6rem;
 }
 
+/* --- 제목 --- */
 h1 {
 	font-size: 1.9rem;
 	font-weight: 700;
@@ -43,6 +52,7 @@ h1 {
 	margin-bottom: 0.2rem;
 }
 
+/* --- 상태 배지 --- */
 .remaining-badge {
 	background: #e8f5e9;
 	color: #2e7d32;
@@ -58,6 +68,7 @@ h1 {
 	box-shadow: 0 2px 8px rgba(0, 100, 0, 0.1);
 }
 
+/* --- 뽑기 개수 입력 --- */
 .count-input-area {
 	display: flex;
 	align-items: center;
@@ -84,6 +95,7 @@ h1 {
 	background: white;
 }
 
+/* --- 버튼 --- */
 .button-grid {
 	display: flex;
 	flex-direction: column;
@@ -133,6 +145,7 @@ button.primary:active {
 	background: #1b5e20;
 }
 
+/* --- 결과 카드 --- */
 .result-card {
 	background: #f1f8e9;
 	border-radius: 1.8rem;
@@ -164,6 +177,7 @@ button.primary:active {
 	letter-spacing: 0.5px;
 }
 
+/* --- 운동 종목 리스트 --- */
 .exercise-list {
 	list-style: none;
 	display: flex;
@@ -184,6 +198,7 @@ button.primary:active {
 	border-left: 5px solid #4caf50;
 }
 
+/* --- 세트·포즈 아이템 --- */
 .set-pose-item {
 	font-weight: 700;
 	font-size: 1.2rem;
@@ -196,6 +211,7 @@ button.primary:active {
 	gap: 0.5rem;
 }
 
+/* --- 편집 모달 --- */
 .modal-overlay {
 	position: fixed;
 	top: 0;
@@ -212,6 +228,7 @@ button.primary:active {
 	padding: 1rem;
 }
 
+/* --- 모달 안쪽 --- */
 .modal {
 	background: white;
 	border-radius: 2rem;
@@ -266,6 +283,7 @@ button.primary:active {
 	flex-wrap: wrap;
 }
 
+/* --- 기본값 복원 버튼 --- */
 .reset-small {
 	background: none;
 	border: 1px solid #a5d6a7;
@@ -278,7 +296,9 @@ button.primary:active {
 	min-width: auto;
 }
 
+/* --- 반응형 --- */
 @media (max-width: 400px) {
+	/* 메인 컨테이너 / 카드 */
 	.container {
 		padding: 1.4rem 1rem;
 	}
