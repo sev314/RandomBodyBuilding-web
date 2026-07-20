@@ -1,6 +1,8 @@
 // 브라우저 콘솔로 로그를 남깁니다.
 
 (function () {
+	/** 랜덤 보디빌딩 웹 애플리케이션 - 운동 종목·세트·포징을 무작위로 뽑아주는 인터랙티브 웹 앱 */
+
 	// ---------- 기본 데이터 (하드코딩 없이 상수로 분리) ----------
 
 	var DEFAULT_EXERCISES = [
@@ -114,7 +116,7 @@
 			.replace(/'/g, "&#039;");
 	};
 
-	// ---------- 공통 풀(Pool) 클래스 (중복 제거) ----------
+	/** 공통 풀(Pool) 클래스 - 중복 추적을 통해 항목을 무작위로 뽑는 기본 클래스 */
 
 	var BasePool = function (items) {
 		/** 풀에 들어 있는 항목의 복사본 */
@@ -122,6 +124,9 @@
 
 		/** 선택된 항목을 객체 키로 관리 */
 		this.picked = {};
+
+		/** 풀 유형 식별자 (로깅에 사용) */
+		this.type = "base";
 	};
 
 	BasePool.prototype.resetPicked = function () {
@@ -161,29 +166,21 @@
 		var idx = Math.floor(Math.random() * available.length);
 		var chosen = available[idx];
 		this.picked[chosen] = true;
+		console.log(this.type + " 1개 뽑음:" + chosen);
 
 		return chosen;
 	};
 
-	// ---------- 운동 종목 풀 (BasePool 확장) ----------
+	/** 운동 종목 풀 - BasePool을 확장하여 운동 종목 전용 추첨 기능을 제공 */
 
+	/** ExercisePool 생성자 - 부모 BasePool을 호출하고 운동 종목 유형을 설정 */
 	var ExercisePool = function (items) {
 		BasePool.call(this, items);
+		this.type = "exercise";
 	};
 
 	ExercisePool.prototype = Object.create(BasePool.prototype);
 	ExercisePool.prototype.constructor = ExercisePool;
-
-	// 운동 전용 로깅을 포함한 drawOne 오버라이드
-	ExercisePool.prototype.drawOne = function () {
-		var chosen = BasePool.prototype.drawOne.call(this);
-
-		if (chosen) {
-			console.log("운동 1개 뽑음:" + chosen);
-		}
-
-		return chosen;
-	};
 
 	/** 가용 항목을 셔플한 뒤 앞에서 `count`개를 뽑아 기록하고 반환 */
 	ExercisePool.prototype.drawMultiple = function (count) {
@@ -208,28 +205,25 @@
 		return chosen;
 	};
 
-	// ---------- 세트 풀 (BasePool 확장, 중복 뽑기 방지) ----------
+	/** 세트 풀 - BasePool을 확장하여 세트(컴파운드세트·트라이세트 등)를 관리 */
+	/** SetPool 생성자 - 부모 BasePool을 호출하고 세트 유형을 설정 */
 	var SetPool = function (items) {
 		BasePool.call(this, items);
+		this.type = "set";
 	};
 
 	SetPool.prototype = Object.create(BasePool.prototype);
 	SetPool.prototype.constructor = SetPool;
 
-	// 세트 전용 로깅과 함께 drawRandom 구현 (내부적으로 drawOne 사용)
+	/** 세트 전용 drawRandom - 내부적으로 drawOne을 호출하여 하나의 세트를 무작위로 뽑음 */
 	SetPool.prototype.drawRandom = function () {
-		var chosen = this.drawOne(); // BasePool의 drawOne 상속
-
-		if (chosen) {
-			console.log("세트 1개 뽑음:" + chosen);
-		}
-
-		return chosen;
+		return this.drawOne();
 	};
 
-	// ---------- 포즈 풀 (별도, 중복 추적 불필요) ----------
+	/** 포즈 풀 - 중복 추적 없이 무작위로 포즈 모음을 뽑는 독립적인 풀 */
 	// 매번 무작위로 뽑되 이전 기록을 지우지 않는 『추첨 복원 샘플링』 방식
 
+	/** PosePool 생성자 - items 배열을 받아 복사본을 저장 (중복 추적하지 않음) */
 	var PosePool = function (items) {
 		if (!items) items = [];
 		this.items = items.slice();
@@ -248,8 +242,9 @@
 		return this.items[idx];
 	};
 
-	// ---------- 전체 앱의 오케스트레이터 구실을 하는 메인 앱 클래스 ----------
+	/** 전체 앱의 오케스트레이터 구실을 하는 메인 앱 클래스 - 풀들을 생성하고 UI 이벤트를 연결 */
 
+	/** RandomBodybuildingApp 생성자 - 풀들을 초기화하고 UI를 설정 */
 	var RandomBodybuildingApp = function () {
 		this.exercisePool = new ExercisePool(DEFAULT_EXERCISES);
 		this.setPool = new SetPool(DEFAULT_SETS);
@@ -260,6 +255,7 @@
 		console.log("앱 초기화 완료");
 	};
 
+	/** UI 초기화 - DOM 요소를 캐싱하고 이벤트 리스너를 연결 */
 	RandomBodybuildingApp.prototype.initUI = function () {
 		var self = this;
 
@@ -376,7 +372,7 @@
 		});
 	};
 
-	// --- 뽑기 개수를 입력 필드에서 직접 읽어오는 메서드 ---
+	/** 입력 필드에서 뽑기 개수를 읽어와 정수로 반환 */
 	RandomBodybuildingApp.prototype.getDrawCount = function () {
 		var val = parseInt(this.drawCountInput.value, 10);
 		return isNaN(val) || val < 1 ? 1 : val;
@@ -402,18 +398,9 @@
 
 	/** "종목 여럿 뽑기" 버튼 */
 	RandomBodybuildingApp.prototype.handlePickMultiple = function () {
+		if (!this.validateDraw(false)) return;
+
 		var count = this.getDrawCount();
-
-		if (this.exercisePool.getRemainingCount() < count) {
-			alert(
-				"남은 종목이 " +
-					this.exercisePool.getRemainingCount() +
-					"개뿐입니다. 개수를 줄이거나 초기화해 주세요.",
-			);
-
-			return;
-		}
-
 		var exercises = this.exercisePool.drawMultiple(count);
 
 		if (exercises.length === 0) {
@@ -427,27 +414,9 @@
 
 	/** "종목여럿+세트" 버튼 */
 	RandomBodybuildingApp.prototype.handlePickMultipleWithSet = function () {
-		// 세트 중복 방지: 세트 잔여량 먼저 확인
-		if (this.setPool.getRemainingCount() === 0) {
-			alert(
-				"더 이상 뽑을 세트가 없습니다. 초기화하거나 목록을 편집해 주세요.",
-			);
-
-			return;
-		}
+		if (!this.validateDraw(true)) return;
 
 		var count = this.getDrawCount();
-
-		if (this.exercisePool.getRemainingCount() < count) {
-			alert(
-				"남은 종목이 " +
-					this.exercisePool.getRemainingCount() +
-					"개뿐입니다. 개수를 줄이거나 초기화해 주세요.",
-			);
-
-			return;
-		}
-
 		var exercises = this.exercisePool.drawMultiple(count);
 		var set = this.setPool.drawRandom();
 
@@ -458,26 +427,9 @@
 	/** "종목여럿+세트+포징" 버튼 */
 	RandomBodybuildingApp.prototype.handlePickMultipleWithSetAndPose =
 		function () {
-			if (this.setPool.getRemainingCount() === 0) {
-				alert(
-					"더 이상 뽑을 세트가 없습니다. 초기화하거나 목록을 편집해 주세요.",
-				);
-
-				return;
-			}
+			if (!this.validateDraw(true)) return;
 
 			var count = this.getDrawCount();
-
-			if (this.exercisePool.getRemainingCount() < count) {
-				alert(
-					"남은 종목이 " +
-						this.exercisePool.getRemainingCount() +
-						"개뿐입니다. 개수를 줄이거나 초기화해 주세요.",
-				);
-
-				return;
-			}
-
 			var exercises = this.exercisePool.drawMultiple(count);
 			var set = this.setPool.drawRandom();
 			var pose = this.posePool.drawRandom();
@@ -497,7 +449,7 @@
 		console.log("초기화 완료 (운동, 세트)");
 	};
 
-	// --- 결과 표시 ---
+	/** 결과 표시 - 결과 객체를 받아 HTML 문자열로 조립하고 resultCard에 삽입 */
 
 	RandomBodybuildingApp.prototype.displayResult = function (result) {
 		// 결과 객체를 받아 HTML 문자열로 조립하고 `resultCard`에 삽입
@@ -559,7 +511,7 @@
 		);
 	};
 
-	// --- 편집 모달 ---
+	/** 편집 모달 열기 - textarea에 현재 풀 항목을 채우고 모달 표시 */
 
 	RandomBodybuildingApp.prototype.openEditModal = function () {
 		this.editExercisesTA.value = this.exercisePool.items.join("\n");
@@ -570,6 +522,7 @@
 		console.log("편집 모달 열기");
 	};
 
+	/** 편집 모달 닫기 */
 	RandomBodybuildingApp.prototype.closeEditModal = function () {
 		this.editModal.style.display = "none";
 		console.log("편집 모달 닫기");
@@ -577,32 +530,9 @@
 
 	/** `<textareas>`를 파싱 → 빈 줄 제거 → 유효성 검사 → 풀에 저장 → 화면 갱신 */
 	RandomBodybuildingApp.prototype.saveEditChanges = function () {
-		var exLines = this.editExercisesTA.value
-			.split("\n")
-			.map(function (line) {
-				return line.trim();
-			})
-			.filter(function (line) {
-				return line.length > 0;
-			});
-
-		var setLines = this.editSetsTA.value
-			.split("\n")
-			.map(function (line) {
-				return line.trim();
-			})
-			.filter(function (line) {
-				return line.length > 0;
-			});
-
-		var poseLines = this.editPosesTA.value
-			.split("\n")
-			.map(function (line) {
-				return line.trim();
-			})
-			.filter(function (line) {
-				return line.length > 0;
-			});
+		var exLines = this.parseTextareaLines(this.editExercisesTA);
+		var setLines = this.parseTextareaLines(this.editSetsTA);
+		var poseLines = this.parseTextareaLines(this.editPosesTA);
 
 		if (exLines.length === 0) {
 			alert("운동 종목을 하나 이상 입력해야 합니다.");
@@ -652,7 +582,10 @@
 	/**
 	 * 텍스트 영역의 내용을 주어진 기본값 배열로 되돌립니다.
 	 */
-	RandomBodybuildingApp.prototype.restoreDefaults = function (textarea, defaults) {
+	RandomBodybuildingApp.prototype.restoreDefaults = function (
+		textarea,
+		defaults,
+	) {
 		textarea.value = defaults.join("\n");
 	};
 
@@ -671,18 +604,21 @@
 			});
 	};
 
+	/** 운동 목록을 기본값으로 복원 */
 	RandomBodybuildingApp.prototype.resetExercisesToDefault = function () {
-		this.editExercisesTA.value = DEFAULT_EXERCISES.join("\n");
+		this.restoreDefaults(this.editExercisesTA, DEFAULT_EXERCISES);
 		console.log("운동 기본값 복원");
 	};
 
+	/** 세트 목록을 기본값으로 복원 */
 	RandomBodybuildingApp.prototype.resetSetsToDefault = function () {
-		this.editSetsTA.value = DEFAULT_SETS.join("\n");
+		this.restoreDefaults(this.editSetsTA, DEFAULT_SETS);
 		console.log("세트 기본값 복원");
 	};
 
+	/** 포즈 목록을 기본값으로 복원 */
 	RandomBodybuildingApp.prototype.resetPosesToDefault = function () {
-		this.editPosesTA.value = DEFAULT_POSES.join("\n");
+		this.restoreDefaults(this.editPosesTA, DEFAULT_POSES);
 		console.log("포징 기본값 복원");
 	};
 
